@@ -142,7 +142,7 @@ class MD:
         self.near_hi = self.near_lo = self.quotes = self.nepse = self.corp = pd.DataFrame()
         self.adv = self.dec = self.unch = 0
         self.ts = datetime.now()
-        # Optional TMS live feed; when None, MD behaves exactly as before.
+        self.tms = None
         self.tms_balance: Optional[Dict] = None
         self.tms_indices: Dict[str, object] = {}
         self.refresh()
