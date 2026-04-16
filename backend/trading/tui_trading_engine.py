@@ -369,51 +369,16 @@ class TUITradingEngine:
     # ─── Agent filter ───────────────────────────────────────────────────────
 
     def _run_agent_filter(self, signals: List[dict]) -> List[dict]:
-        """Send signals to Claude Sonnet agent, return only APPROVED ones."""
+        """Pass all signals through — trades are driven purely by the quant algorithm.
+
+        Agent filtering via Claude API is intentionally disabled so the engine
+        works for everyone without requiring an ANTHROPIC_API_KEY.
+        """
         if not signals:
             self._log("No signals to review")
             return []
-
-        self._log(f"Sending {len(signals)} signals to agent for review...")
-
-        # Call agent analysis (this triggers a Sonnet subprocess call)
-        try:
-            from backend.agents.agent_analyst import analyze, check_trade_approval
-            analyze(force=True)
-            self._on_agent_updated()
-        except Exception as e:
-            self._log(f"Agent analysis failed: {e} — allowing all signals")
-            return signals
-
-        # Filter signals through agent verdicts
-        approved = []
-        rejected = []
-        held = []
-
-        try:
-            from backend.agents.agent_analyst import check_trade_approval
-            for sig in signals:
-                sym = sig["symbol"]
-                ok, reason = check_trade_approval(sym, "BUY")
-                if ok:
-                    sig["agent_reason"] = reason
-                    approved.append(sig)
-                    if "APPROVED" in reason.upper():
-                        held.append(None)  # just for counting
-                else:
-                    rejected.append(sig)
-        except Exception as e:
-            self._log(f"Agent filter error: {e} — allowing all")
-            return signals
-
-        n_approve = len(approved)
-        n_reject = len(rejected)
-        n_hold = len([s for s in approved if "HOLD" in s.get("agent_reason", "").upper()])
-
-        self._log(
-            f"Agent: {n_approve} APPROVE, {n_reject} REJECT, {n_hold} HOLD"
-        )
-        return approved
+        self._log(f"Quant signals approved: {len(signals)} (pure algo, no agent filter)")
+        return signals
 
     # ─── Buy execution ──────────────────────────────────────────────────────
 
